@@ -175,10 +175,10 @@ class _PortfolioHomeState extends State<PortfolioHome> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _glassBadge("4.4 YEARS OF MOBILE ARCHITECTURE"),
+          _glassBadge("4.4 YEARS OF FLUTTER DEVELOPMENT"),
           const SizedBox(height: 30),
           Text(
-            "Kumaravel Shanmugam\nFlutter Architect.",
+            "Kumaravel Shanmugam\nFlutter Developer.",
             textAlign: TextAlign.center,
             style: GoogleFonts.plusJakartaSans(
               fontSize: isMobile ? 48 : 95,
