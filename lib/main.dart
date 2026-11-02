@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -136,6 +137,7 @@ class _PortfolioHomeState extends State<PortfolioHome> {
           child: AppBar(
             backgroundColor: const Color(0xFF030712).withValues(alpha: 0.65),
             elevation: 0,
+            toolbarHeight: 92,
             title: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -173,23 +175,24 @@ class _PortfolioHomeState extends State<PortfolioHome> {
                     _navBtn("Work", 2),
                     _navBtn("Experience", 3),
                     const SizedBox(width: 15),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 18),
-                      child: ElevatedButton(
-                        onPressed: () => _scrollTo(4),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 22),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                    ElevatedButton(
+                      onPressed: () => _scrollTo(4),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                        elevation: 0,
+                        minimumSize: const Size(120, 52),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 22,
+                          vertical: 14,
                         ),
-                        child: const Text(
-                          "Contact",
-                          style: TextStyle(fontWeight: FontWeight.w700),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
+                      ),
+                      child: const Text(
+                        "Contact",
+                        style: TextStyle(fontWeight: FontWeight.w700),
                       ),
                     ),
                     const SizedBox(width: 40),
@@ -432,11 +435,13 @@ class _PortfolioHomeState extends State<PortfolioHome> {
         role:
             "Lead Systems Architect: Designed the offline-first Sqflite database sync pipeline, hardware printer drivers (2-inch / 3-inch Bluetooth, USB, Wi-Fi network printers), electronic weighing scale telemetry, bilingual catalog indexing (Tamil/English), and fast 4-digit MPIN cashier authentication.",
         images: [
+          "assets/images/POS.png",
+          "assets/images/POS 1.png",
           "assets/images/pos_dashboard.jpeg",
           "assets/images/pos_billing.jpeg",
-          "assets/images/pos_thermal_print.jpeg",
-          "assets/images/pos_reports.jpeg",
-          "assets/images/pos_settings.jpeg",
+          "assets/images/pos_thermal.jpeg",
+          "assets/images/pos_report.jpeg",
+          "assets/images/pos_setting.jpeg",
         ],
         tech: [
           "Flutter",
@@ -1273,15 +1278,29 @@ class ProjectImageCarousel extends StatefulWidget {
 class _ProjectImageCarouselState extends State<ProjectImageCarousel> {
   late final PageController _pageController;
   int _currentIndex = 0;
+  Timer? _autoScrollTimer;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+
+    if (widget.images.length > 1) {
+      _autoScrollTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+        final nextIndex = (_currentIndex + 1) % widget.images.length;
+        setState(() => _currentIndex = nextIndex);
+        _pageController.animateToPage(
+          nextIndex,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOutCubic,
+        );
+      });
+    }
   }
 
   @override
   void dispose() {
+    _autoScrollTimer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
@@ -1356,7 +1375,39 @@ class _ProjectImageCarouselState extends State<ProjectImageCarousel> {
               },
             ),
 
-            // Subtle Gradient Fade at the bottom for readability
+            if (widget.images.length > 1)
+              Positioned(
+                top: 16,
+                right: 16,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.45),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.swipe_rounded,
+                        size: 14,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        "${_currentIndex + 1}/${widget.images.length}",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
             Positioned(
               left: 0,
               right: 0,
@@ -1373,55 +1424,79 @@ class _ProjectImageCarouselState extends State<ProjectImageCarousel> {
               ),
             ),
 
-            // Prev / Next Floating Arrows
             if (widget.images.length > 1) ...[
               Positioned(
-                left: 10,
+                left: 14,
                 top: 0,
                 bottom: 0,
                 child: Center(
-                  child: IconButton(
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.black.withValues(alpha: 0.4),
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.55),
+                      borderRadius: BorderRadius.circular(50),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
                     ),
-                    icon: const Icon(
-                      Icons.chevron_left_rounded,
-                      color: Colors.white,
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      splashRadius: 20,
+                      icon: const Icon(
+                        Icons.chevron_left_rounded,
+                        color: Colors.white,
+                        size: 30,
+                      ),
+                      onPressed: () {
+                        final target = (_currentIndex - 1 + widget.images.length) % widget.images.length;
+                        setState(() => _currentIndex = target);
+                        _pageController.animateToPage(
+                          target,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
                     ),
-                    onPressed: () {
-                      _pageController.previousPage(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
                   ),
                 ),
               ),
               Positioned(
-                right: 10,
+                right: 14,
                 top: 0,
                 bottom: 0,
                 child: Center(
-                  child: IconButton(
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.black.withValues(alpha: 0.4),
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.55),
+                      borderRadius: BorderRadius.circular(50),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
                     ),
-                    icon: const Icon(
-                      Icons.chevron_right_rounded,
-                      color: Colors.white,
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      splashRadius: 20,
+                      icon: const Icon(
+                        Icons.chevron_right_rounded,
+                        color: Colors.white,
+                        size: 30,
+                      ),
+                      onPressed: () {
+                        final target = (_currentIndex + 1) % widget.images.length;
+                        setState(() => _currentIndex = target);
+                        _pageController.animateToPage(
+                          target,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
                     ),
-                    onPressed: () {
-                      _pageController.nextPage(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
                   ),
                 ),
               ),
             ],
 
-            // Indicator Dots
             if (widget.images.length > 1)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
